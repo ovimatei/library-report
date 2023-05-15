@@ -1,9 +1,14 @@
 import csv
 import enum
-import datetime
 
 from database import LibraryDatabase
-from open_library_service import OpenLibraryService
+from google_sheets import GoogleSheetsService
+from open_library import OpenLibraryService
+
+# ID of the target Google Spreadsheet
+SPREADSHEET_ID = "12TDSBr797_EDzc0zM1SG7tLH_kkZqhfjugV1SA0xeN0"
+
+CSV_FILE_PATH = "csv_reports/library_report.csv"
 
 
 class BookCategories(enum.Enum):
@@ -15,10 +20,14 @@ class BookCategories(enum.Enum):
         return self.value
 
 
-def read_book_price_csv():
-    with open("book_price.csv", "r") as file:
-        reader = csv.reader(file)
+def upload_to_google_sheets(db):
+    service = GoogleSheetsService()
+    service.upload_data(SPREADSHEET_ID, db.get_all_books())
 
+
+def read_book_price_csv():
+    with open("csv_reports/book_price.csv", "r") as file:
+        reader = csv.reader(file)
         for row in reader:
             yield row
 
@@ -41,7 +50,6 @@ def update_description(db):
 
 if __name__ == "__main__":
     db = LibraryDatabase()
-    db.db_cleanup()
 
     for category in BookCategories:
         service = OpenLibraryService(category)
@@ -51,6 +59,8 @@ if __name__ == "__main__":
 
     update_description(db)
 
-    db.export_to_csv()
+    db.export_to_csv(CSV_FILE_PATH)
+
+    upload_to_google_sheets(db)
 
     db.conn.close()

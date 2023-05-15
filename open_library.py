@@ -37,7 +37,8 @@ class OpenLibraryService:
         total_books = self.get_total_books()
 
         print(f"Found {total_books} books for category {self.category}")
-        print("Adding books to database...")
+        print(f"Adding books to database...")
+
         count = 0
 
         while self.OFFSET < total_books:

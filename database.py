@@ -11,9 +11,10 @@ class LibraryDatabase:
     def __init__(self):
         self.conn = sqlite3.connect(DB_NAME)
         self.c = self.conn.cursor()
+        self.create_books_table()
 
     def create_books_table(self):
-        print("Creating books table...")
+        print("Creating books table if not exists...")
         self.execute_query(
             """CREATE TABLE IF NOT EXISTS books (
                 book_id VARCHAR(250) PRIMARY KEY NOT NULL,
@@ -59,10 +60,15 @@ class LibraryDatabase:
         self.execute_query(query)
         return [x[0] for x in self.c.fetchall()]
 
-    def export_to_csv(self):
+    def get_all_books(self):
         query = f"SELECT * FROM books"
         self.execute_query(query)
-        with open("library_report.csv", "w", newline="") as f:
+        return self.c.fetchall()
+
+    def export_to_csv(self, filename="library_report.csv"):
+        query = f"SELECT * FROM books"
+        self.execute_query(query)
+        with open(filename, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
@@ -75,3 +81,4 @@ class LibraryDatabase:
                 ]
             )
             writer.writerows(self.c.fetchall())
+        print(f"Exported data to {filename}")
