@@ -7,6 +7,15 @@ import requests
 logger = logging.getLogger(__name__)
 
 
+def extract_book_fields(book):
+    book_id = book["key"].split("/")[-1]
+    title = book["title"]
+    categories = "; ".join(subject for subject in book["subject"])
+    author_names = "; ".join(author["name"] for author in book["authors"])
+
+    return book_id, title, categories, author_names
+
+
 class OpenLibraryService:
     OPEN_LIBRARY_API = "https://openlibrary.org"
     LIMIT = 50
@@ -36,7 +45,6 @@ class OpenLibraryService:
         print(f"Adding books to database...")
 
         count = 0
-
         while self.OFFSET < total_books:
             response = requests.get(
                 f"{self.OPEN_LIBRARY_API}/subjects/{self.category}.json?limit={self.LIMIT}&offset={self.OFFSET}"
@@ -44,36 +52,24 @@ class OpenLibraryService:
 
             response.raise_for_status()
             books_json = response.json()["works"]
-            try:
-                for book in books_json:
-                    title = book["title"]
-                    categories = "; ".join(subject for subject in book["subject"])
-                    author_names = "; ".join(
-                        author["name"] for author in book["authors"]
+            for book in books_json:
+                book_id, title, categories, author_names = extract_book_fields(book)
+                try:
+                    db.insert(
+                        table_name="books",
+                        data={
+                            "book_id": book_id,
+                            "title": title,
+                            "categories": categories,
+                            "author_names": author_names,
+                        },
                     )
-                    book_id = book["key"].split("/")[-1]
-                    try:
-                        db.insert(
-                            table_name="books",
-                            data={
-                                "book_id": book_id,
-                                "title": title,
-                                "categories": categories,
-                                "author_names": author_names,
-                            },
-                        )
+                    count += 1
 
-                        count += 1
-
-                    except sqlite3.IntegrityError:
-                        logger.warning(
-                            f"Book with id {book_id} already exists, skipping..."
-                        )
-
-            except Exception as e:
-                logger.error(
-                    f"Error while inserting book with id {book_id}, error: {e}"
-                )
+                except sqlite3.IntegrityError:
+                    logger.warning(
+                        f"Book with id {book_id} already exists, skipping..."
+                    )
 
             self.OFFSET += self.LIMIT
 
@@ -98,6 +94,7 @@ class OpenLibraryService:
             time.sleep(1)
 
         logger.error(f"Error while getting book with id {book_id}")
+
         return {}
 
     def update_book_description(self, db, book_id):
@@ -112,12 +109,12 @@ class OpenLibraryService:
 
         if excerpts:
             excerpts = "; ".join(excerpt["excerpt"]["value"] for excerpt in excerpts)
-            logger.info(f"Found excerpts for book with id {book_id}")
+            print(f"Found excerpts for book with id {book_id}")
 
-            description = description + excerpts
+            description = excerpts
 
         if not description:
-            logger.info(f"Book with id {book_id} has no description or excerpts")
+            print(f"Book with id {book_id} has no description or excerpts")
             return
 
         db.update(
@@ -125,4 +122,5 @@ class OpenLibraryService:
             book_id=book_id,
             data={"description": description},
         )
+
         print(f"Updated description for book with id {book_id}")
