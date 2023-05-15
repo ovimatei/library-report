@@ -30,7 +30,3 @@ def update_description(db):
 
     for book_id in book_ids:
         service.update_book_description(db, book_id)
-
-
-def extract_descriptions(description):
-    return "; ".join(description["value"] for description in description)
