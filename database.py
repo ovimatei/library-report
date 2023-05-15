@@ -1,8 +1,5 @@
-import sqlite3
-import logging
 import csv
-
-logger = logging.getLogger(__name__)
+import sqlite3
 
 DB_NAME = "library_report.db"
 

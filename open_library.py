@@ -64,6 +64,7 @@ class OpenLibraryService:
                             "author_names": author_names,
                         },
                     )
+                    print(f"Added book with id {book_id}")
                     count += 1
 
                 except sqlite3.IntegrityError:
