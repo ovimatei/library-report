@@ -1,8 +1,7 @@
-import csv
 import enum
 
 from database import LibraryDatabase
-from google_sheets import GoogleSheetsService
+from helpers import update_book_price, update_description, upload_to_google_sheets
 from open_library import OpenLibraryService
 
 # ID of the target Google Spreadsheet
@@ -20,34 +19,6 @@ class BookCategories(enum.Enum):
         return self.value
 
 
-def upload_to_google_sheets(db):
-    service = GoogleSheetsService()
-    service.upload_data(SPREADSHEET_ID, db.get_all_books())
-
-
-def read_book_price_csv():
-    with open("csv_reports/book_price.csv", "r") as file:
-        reader = csv.reader(file)
-        for row in reader:
-            yield row
-
-
-def update_book_price(db):
-    for row in read_book_price_csv():
-        book_id, price, *_ = row
-        if book_id == "Book ID":
-            continue
-        db.update(table_name="books", book_id=book_id, data={"price": price})
-
-
-def update_description(db):
-    book_ids = db.get_book_ids()
-    service = OpenLibraryService()
-
-    for book_id in book_ids:
-        service.update_book_description(db, book_id)
-
-
 if __name__ == "__main__":
     db = LibraryDatabase()
 
@@ -61,6 +32,6 @@ if __name__ == "__main__":
 
     db.export_to_csv(CSV_FILE_PATH)
 
-    upload_to_google_sheets(db)
+    upload_to_google_sheets(db, SPREADSHEET_ID)
 
     db.conn.close()

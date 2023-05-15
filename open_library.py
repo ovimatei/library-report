@@ -7,10 +7,6 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-def extract_descriptions(description):
-    return "; ".join(description["value"] for description in description)
-
-
 class OpenLibraryService:
     OPEN_LIBRARY_API = "https://openlibrary.org"
     LIMIT = 50
@@ -118,7 +114,7 @@ class OpenLibraryService:
             excerpts = "; ".join(excerpt["excerpt"]["value"] for excerpt in excerpts)
             logger.info(f"Found excerpts for book with id {book_id}")
 
-            description = description + "Excerpts: " + excerpts
+            description = description + excerpts
 
         if not description:
             logger.info(f"Book with id {book_id} has no description or excerpts")

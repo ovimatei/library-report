@@ -66,8 +66,6 @@ class LibraryDatabase:
         return self.c.fetchall()
 
     def export_to_csv(self, filename="library_report.csv"):
-        query = f"SELECT * FROM books"
-        self.execute_query(query)
         with open(filename, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(
@@ -80,5 +78,5 @@ class LibraryDatabase:
                     "description",
                 ]
             )
-            writer.writerows(self.c.fetchall())
+            writer.writerows(self.get_all_books())
         print(f"Exported data to {filename}")
