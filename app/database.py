@@ -4,9 +4,9 @@ import sqlite3
 DB_NAME = "library_report.db"
 
 
-class LibraryDatabase:
-    def __init__(self):
-        self.conn = sqlite3.connect(DB_NAME)
+class Database:
+    def __init__(self, db_name=DB_NAME):
+        self.conn = sqlite3.connect(db_name)
         self.c = self.conn.cursor()
         self.create_books_table()
 

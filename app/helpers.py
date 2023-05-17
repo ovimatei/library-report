@@ -1,16 +1,18 @@
 import csv
 
-from google_sheets import GoogleSheetsService
-from open_library import OpenLibraryService
+from app.google_sheets import GoogleSheetsService
+from app.openlibrary import OpenLibraryService
 
 
 def upload_to_google_sheets(db, spreadsheet_id):
     service = GoogleSheetsService()
-    service.upload_data(spreadsheet_id, db.get_all_books())
+    headers = ["Book ID", "Title", "Categories", "Author Names", "Price", "Description"]
+    rows = [headers] + db.get_all_books()
+    service.upload_data(spreadsheet_id, rows)
 
 
 def read_book_price_csv():
-    with open("csv_reports/book_price.csv", "r") as file:
+    with open("book_price.csv", "r") as file:
         reader = csv.reader(file)
         for row in reader:
             yield row
@@ -24,9 +26,10 @@ def update_book_price(db):
         db.update(table_name="books", book_id=book_id, data={"price": price})
 
 
-def update_description(db):
+def update_book_data(db):
+    update_book_price(db)
     book_ids = db.get_book_ids()
     service = OpenLibraryService()
 
     for book_id in book_ids:
-        service.update_book_description(db, book_id)
+        service.update_book(db, book_id)

@@ -1,13 +1,14 @@
+import datetime
 import enum
 
-from database import LibraryDatabase
-from helpers import update_book_price, update_description, upload_to_google_sheets
-from open_library import OpenLibraryService
+from app.database import Database
+from app.helpers import update_book_data, upload_to_google_sheets
+from app.openlibrary import OpenLibraryService
 
 # ID of the target Google Spreadsheet
 SPREADSHEET_ID = "12TDSBr797_EDzc0zM1SG7tLH_kkZqhfjugV1SA0xeN0"
-
-CSV_FILE_PATH = "csv_reports/library_report.csv"
+DATABASE_NAME = "libraru_report.db"
+CSV_FILE_PATH = "reports/library_report.csv"
 
 
 class BookCategories(enum.Enum):
@@ -20,15 +21,15 @@ class BookCategories(enum.Enum):
 
 
 if __name__ == "__main__":
-    db = LibraryDatabase()
+    db = Database(db_name=DATABASE_NAME)
+
+    start = datetime.datetime.now()
 
     for category in BookCategories:
         service = OpenLibraryService(category)
         service.add_book_data_to_db(db)
 
-    update_book_price(db)
-
-    update_description(db)
+    update_book_data(db)
 
     db.export_to_csv(CSV_FILE_PATH)
 

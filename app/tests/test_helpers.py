@@ -100,3 +100,86 @@ class TestBookResponse(unittest.TestCase):
             excerpts,
             "Even a cursory glance at The Wall Street Journal reveals a bewildering collection of securities, markets, and financial institutions.",
         )
+
+    def test_author_key(self):
+        authors = self.book_response["authors"]
+        for author in authors:
+            author_key = author["author"]["key"]
+            print(author_key)
+
+
+class TestCategoryBooksResponse(unittest.TestCase):
+    category_books_response = {
+        "key": "/subjects/python",
+        "name": "python",
+        "subject_type": "subject",
+        "work_count": 95,
+        "works": [
+            {
+                "key": "/works/OL2784125W",
+                "title": "Learning Python",
+                "edition_count": 20,
+                "cover_id": 1312568,
+                "cover_edition_key": "OL9497269M",
+                "subject": [
+                    "Python",
+                    "Computer Science",
+                ],
+                "ia_collection": [
+                    "americana",
+                    "inlibrary",
+                    "internetarchivebooks",
+                    "librarygenesis",
+                    "printdisabled",
+                    "schroederlibrary-ol",
+                ],
+                "lendinglibrary": False,
+                "printdisabled": True,
+                "lending_edition": "OL6804857M",
+                "lending_identifier": "learningpython00lutz",
+                "authors": [
+                    {"key": "/authors/OL411267A", "name": "Mark Lutz"},
+                    {"key": "/authors/OL2726848A", "name": "David Ascher"},
+                ],
+                "first_publish_year": 1999,
+                "ia": "learningpython00lutz",
+                "public_scan": False,
+                "has_fulltext": True,
+                "availability": {
+                    "status": "borrow_available",
+                    "available_to_browse": True,
+                    "available_to_borrow": False,
+                    "available_to_waitlist": False,
+                    "is_printdisabled": True,
+                    "is_readable": False,
+                    "is_lendable": True,
+                    "is_previewable": True,
+                    "identifier": "learningpython00lutz",
+                    "isbn": "1565924649",
+                    "oclc": None,
+                    "openlibrary_work": "OL2784132W",
+                    "openlibrary_edition": "OL6804857M",
+                    "last_loan_date": "2020-09-07T02:46:52Z",
+                    "num_waitlist": "0",
+                    "last_waitlist_date": "2020-08-26T12:48:18Z",
+                    "is_restricted": True,
+                    "is_browseable": True,
+                    "__src__": "core.models.lending.get_availability",
+                },
+            },
+        ],
+    }
+
+    def test_extract_book_fields(self):
+        from app.openlibrary import extract_book_fields
+
+        payload = self.category_books_response["works"][0]
+        book_id, title, categories = extract_book_fields(payload)
+        self.assertEqual(book_id, "OL2784125W")
+        self.assertEqual(title, "Learning Python")
+        self.assertEqual(categories, "Python; Computer Science")
+
+    def test_get_total_books_number(self):
+        from app.openlibrary import get_total_books
+
+        self.assertEqual(get_total_books(self.category_books_response), 95)
