@@ -40,10 +40,6 @@ def get_book_description(response):
     return description
 
 
-def get_author_name(author_response):
-    return author_response["name"]
-
-
 class OpenLibraryService:
     OPEN_LIBRARY_API = "https://openlibrary.org"
     LIMIT = 50
