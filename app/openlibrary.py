@@ -1,11 +1,10 @@
-import logging
 import sqlite3
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-logger = logging.getLogger(__name__)
+from app.logger import logger
 
 
 def extract_book_fields(book):
@@ -69,8 +68,8 @@ class OpenLibraryService:
 
         total_books = get_total_books(category_books_response.json())
 
-        print(f"Found {total_books} books for category {self.category}")
-        print(f"Adding books to database...")
+        logger.info(f"Found {total_books} books for category {self.category}")
+        logger.info(f"Adding books to database...")
 
         count = 0
         while self.OFFSET < total_books:
@@ -93,7 +92,7 @@ class OpenLibraryService:
                             "categories": categories,
                         },
                     )
-                    print(f"Added book with id {book_id}")
+                    logger.info(f"Added book with id {book_id}")
                     count += 1
 
                 except sqlite3.IntegrityError:
@@ -103,7 +102,7 @@ class OpenLibraryService:
 
             self.OFFSET += self.LIMIT
 
-        print(f"Added {count} books for category {self.category}")
+        logger.info(f"Added {count} books for category {self.category}")
 
     def get_book_response(self, book_id):
         response = self.session.get(f"{self.OPEN_LIBRARY_API}/works/{book_id}.json")
@@ -145,6 +144,6 @@ class OpenLibraryService:
             book_id=book_id,
             data=data,
         )
-        print(
+        logger.info(
             f"Updated book with id {book_id}, description: {description}, author_names: {author_names}"
         )

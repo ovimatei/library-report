@@ -1,6 +1,8 @@
 import csv
 import sqlite3
 
+from app.openlibrary import logger
+
 DB_NAME = "library_report.db"
 
 
@@ -11,7 +13,8 @@ class Database:
         self.create_books_table()
 
     def create_books_table(self):
-        print("Creating books table if not exists...")
+        logger.info("Creating books table if not exists...")
+
         self.execute_query(
             """CREATE TABLE IF NOT EXISTS books (
                 book_id VARCHAR(250) PRIMARY KEY NOT NULL,
@@ -24,9 +27,9 @@ class Database:
         )
 
     def db_cleanup(self):
-        print("Cleaning up database...")
+        logger.info("Cleaning up database...")
         self.execute_query("DROP TABLE IF EXISTS books")
-        print("Creating books table...")
+        logger.info("Creating books table...")
         self.create_books_table()
 
     def execute_query(self, query, params=None):
@@ -76,4 +79,4 @@ class Database:
                 ]
             )
             writer.writerows(self.get_all_books())
-        print(f"Exported data to {filename}")
+        logger.info(f"Exported data to {filename}")
