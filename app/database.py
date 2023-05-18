@@ -1,9 +1,8 @@
 import csv
 import sqlite3
 
+from app.constants import DB_NAME
 from app.openlibrary import logger
-
-DB_NAME = "library_report.db"
 
 
 class Database:

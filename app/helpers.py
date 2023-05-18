@@ -1,5 +1,6 @@
 import csv
 
+from app.constants import BOOK_PRICE_FILE_PATH
 from app.google_sheets import GoogleSheetsService
 from app.openlibrary import OpenLibraryService
 
@@ -12,7 +13,7 @@ def upload_to_google_sheets(db, spreadsheet_id):
 
 
 def read_book_price_csv():
-    with open("book_price.csv", "r") as file:
+    with open(BOOK_PRICE_FILE_PATH, "r") as file:
         reader = csv.reader(file)
         for row in reader:
             yield row
