@@ -3,7 +3,8 @@
 ![Tests](https://github.com/ovimatei/library-report/actions/workflows/tests.yml/badge.svg?branch=main)
 
 
-[![Coverage](https://img.shields.io/badge/coverage-72%25-brightgreen)](coverage_report_url)
+[![Coverage](https://img.shields.io/badge/coverage-{{COVERAGE_PERCENTAGE}}%25-brightgreen)](https://github.com/ovimatei/library-report/suites/artifacts/704558135
+
 
 
 ## Description
