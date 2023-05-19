@@ -1,6 +1,6 @@
 # Library Report
 
-![Tests](https://img.shields.io/github/actions/workflow/status/ovimatei/library-report/test.yml?branch=main)
+![Tests](https://img.shields.io/github/actions/workflow/status/ovimatei/library-report/ci.yml?branch=main)
 
 
 [![Coverage](https://img.shields.io/badge/coverage-72%25-brightgreen)](coverage_report_url)
