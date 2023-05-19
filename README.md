@@ -1,5 +1,8 @@
 # Library Report
 
+[![Coverage](https://img.shields.io/badge/coverage-72%25-brightgreen)](coverage_report_url)
+
+
 ## Description
 
 This is a program that reads books from Open Library API from given categories
