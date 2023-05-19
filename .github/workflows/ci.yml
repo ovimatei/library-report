@@ -32,8 +32,3 @@ jobs:
         with:
           name: coverage-report
           path: coverage_html/
-
-      - name: Publish coverage report
-        uses: actions/github-pages@v4
-        with:
-          folder: coverage_html/
