@@ -24,10 +24,6 @@ jobs:
       - name: Run tests
         run: python -m unittest discover app/tests/
 
-      - name: Set passing status
-        run: echo "TESTS_PASSED=true" >> $GITHUB_ENV
-        if: ${{ success() }}
-
       - name: Generate coverage report
         run: coverage run -m unittest discover app/tests/
 
@@ -36,3 +32,8 @@ jobs:
         with:
           name: coverage-report
           path: coverage_html/
+
+      - name: Publish coverage report
+        uses: actions/github-pages@v4
+        with:
+          folder: coverage_html/
