@@ -23,8 +23,8 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m unittest discover app/tests/
-          coverage report
+          python -m unittest discover app/tests/ && \
+          coverage report && \
           export COVERAGE_PERCENTAGE=$(coverage report | awk '/TOTAL/ {print $4}' | cut -d'%' -f1)
 
       - name: Generate coverage report
