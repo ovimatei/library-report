@@ -13,24 +13,23 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.10
+          python-version: 3.x
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Run tests
-        run: python -m unittest discover app/tests/
+        run: python -m unittest discover tests/
+
+      - name: Set passing status
+        run: echo "TESTS_PASSED=true" >> $GITHUB_ENV
+        if: ${{ success() }}
 
       - name: Generate coverage report
-        run: coverage run -m unittest discover app/tests/
+        run: coverage run -m unittest discover tests/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
           name: coverage-report
           path: coverage_html/
-
-      - name: Publish coverage report
-        uses: actions/github-pages@v4
-        with:
-          folder: coverage_html/
