@@ -1,5 +1,8 @@
 # Library Report
 
+![Tests](https://img.shields.io/github/workflow/status/ovimatei/library-report/CI/main?label=tests)
+
+
 [![Coverage](https://img.shields.io/badge/coverage-72%25-brightgreen)](coverage_report_url)
 
 
