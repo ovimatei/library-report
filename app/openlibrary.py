@@ -30,7 +30,9 @@ def get_book_description(response):
             description = description.get("value")
 
     if excerpts:
-        excerpts = "; ".join(excerpt.get("excerpt", {}).get("value") for excerpt in excerpts)
+        excerpts = "; ".join(
+            excerpt.get("excerpt", {}).get("value") for excerpt in excerpts
+        )
 
         if description:
             description = f"{description}; {excerpts}"
@@ -86,12 +88,18 @@ class OpenLibraryService:
                 try:
                     db.insert(
                         table_name="books",
-                        data={"book_id": book_id, "title": title, "categories": categories},
+                        data={
+                            "book_id": book_id,
+                            "title": title,
+                            "categories": categories,
+                        },
                     )
                     logger.info(f"Added book with id {book_id}")
                     count += 1
                 except sqlite3.IntegrityError:
-                    logger.warning(f"Book with id {book_id} already exists, skipping...")
+                    logger.warning(
+                        f"Book with id {book_id} already exists, skipping..."
+                    )
 
             self.OFFSET += self.LIMIT
 
@@ -113,7 +121,9 @@ class OpenLibraryService:
             if not author_key:
                 raise KeyError("author key not found")
 
-            author_response = self.session.get(f"{self.OPEN_LIBRARY_API}{author_key}.json")
+            author_response = self.session.get(
+                f"{self.OPEN_LIBRARY_API}{author_key}.json"
+            )
             author_response.raise_for_status()
             author_names.append(author_response.json().get("name"))
 
