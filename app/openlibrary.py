@@ -1,5 +1,4 @@
 import sqlite3
-
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
@@ -16,10 +15,9 @@ def extract_book_fields(book):
 
 
 def get_total_books(category_book_response):
-    try:
-        total_books = category_book_response["work_count"]
-    except KeyError:
-        raise KeyError("work_count not found")
+    total_books = category_book_response.get("work_count")
+    if total_books is None:
+        raise ValueError("work_count not found")
     return total_books
 
 
@@ -29,12 +27,15 @@ def get_book_description(response):
 
     if description:
         if isinstance(description, dict):
-            description = description["value"]
+            description = description.get("value")
 
     if excerpts:
-        excerpts = "; ".join(excerpt["excerpt"]["value"] for excerpt in excerpts)
+        excerpts = "; ".join(excerpt.get("excerpt", {}).get("value") for excerpt in excerpts)
 
-        description = excerpts if not description else f"{description}; {excerpts}"
+        if description:
+            description = f"{description}; {excerpts}"
+        else:
+            description = excerpts
 
     return description
 
@@ -44,32 +45,32 @@ class OpenLibraryService:
     LIMIT = 50
     OFFSET = 0
     MAX_RETRIES = 3
-    status_forcelist = [500, 502, 503, 504]
+    STATUS_FORCELIST = [500, 502, 503, 504]
 
     def __init__(self, category=None):
+        if not category:
+            raise ValueError("Category is required")
+
         self.category = category
         self.session = requests.Session()
         self.adapter = HTTPAdapter(
             max_retries=Retry(
                 total=self.MAX_RETRIES,
                 backoff_factor=1,
-                status_forcelist=self.status_forcelist,
+                status_forcelist=self.STATUS_FORCELIST,
             )
         )
         self.session.mount(self.OPEN_LIBRARY_API, self.adapter)
 
     def add_book_data_to_db(self, db):
-        if not self.category:
-            raise ValueError("Category is required")
-
         category_books_response = self.session.get(
             f"{self.OPEN_LIBRARY_API}/subjects/{self.category}.json"
         )
+        category_books_response.raise_for_status()
 
         total_books = get_total_books(category_books_response.json())
-
         logger.info(f"Found {total_books} books for category {self.category}")
-        logger.info(f"Adding books to database...")
+        logger.info("Adding books to the database...")
 
         count = 0
         while self.OFFSET < total_books:
@@ -77,28 +78,20 @@ class OpenLibraryService:
                 f"{self.OPEN_LIBRARY_API}/subjects/{self.category}.json",
                 params={"limit": self.LIMIT, "offset": self.OFFSET},
             )
-
             response.raise_for_status()
 
-            books_json = response.json()["works"]
+            books_json = response.json().get("works", [])
             for book in books_json:
                 book_id, title, categories = extract_book_fields(book)
                 try:
                     db.insert(
                         table_name="books",
-                        data={
-                            "book_id": book_id,
-                            "title": title,
-                            "categories": categories,
-                        },
+                        data={"book_id": book_id, "title": title, "categories": categories},
                     )
                     logger.info(f"Added book with id {book_id}")
                     count += 1
-
                 except sqlite3.IntegrityError:
-                    logger.warning(
-                        f"Book with id {book_id} already exists, skipping..."
-                    )
+                    logger.warning(f"Book with id {book_id} already exists, skipping...")
 
             self.OFFSET += self.LIMIT
 
@@ -110,23 +103,19 @@ class OpenLibraryService:
         return response.json()
 
     def get_book_author_names(self, response):
-        authors = response.get("authors", None)
+        authors = response.get("authors", [])
         author_names = []
-        if authors:
-            for author in authors:
-                try:
-                    author_key = author["author"]["key"]
-                except KeyError:
-                    try:
-                        author_key = author["key"]
-                    except KeyError:
-                        raise KeyError("author key not found")
+        for author in authors:
+            try:
+                author_key = author["author"]["key"]
+            except KeyError:
+                author_key = author.get("key")
+            if not author_key:
+                raise KeyError("author key not found")
 
-                author_response = self.session.get(
-                    f"{self.OPEN_LIBRARY_API}{author_key}.json"
-                )
-                author_response.raise_for_status()
-                author_names.append(author_response.json()["name"])
+            author_response = self.session.get(f"{self.OPEN_LIBRARY_API}{author_key}.json")
+            author_response.raise_for_status()
+            author_names.append(author_response.json().get("name"))
 
         return "; ".join(author_names)
 
@@ -139,11 +128,7 @@ class OpenLibraryService:
         if description:
             data["description"] = description
 
-        db.update(
-            table_name="books",
-            book_id=book_id,
-            data=data,
-        )
+        db.update(table_name="books", book_id=book_id, data=data)
         logger.info(
             f"Updated book with id {book_id}, description: {description}, author_names: {author_names}"
         )
